@@ -3,47 +3,62 @@ package br.com.dw.resultadosmegasena;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
-import android.webkit.WebView;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
-
 public class MainActivity extends AppCompatActivity {
-    private Handler handler = new Handler();
+    private TextView tipo ;
+    private TextView nome;
+    private TextView resultado;
+    private EditText pesquisaconcurso;
+
+
+    private String tiposelecionado;
+
+    private Concurso concurso1 = new Concurso();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final String[] texto = new String[1];
-        new Thread() {
-            public void run() {
-                Document doc = null;
-                String f ;
-                try {
-                    doc = Jsoup.connect("https://g1.globo.com/loterias/megasena.ghtml").get();
-                    Elements pagina = doc.select("div#lottery");
+        tiposelecionado = "#";
 
-                    for (Element el : pagina) {
-                        //Dentro da div, encontramos o item que possui class igual a 'js-tweet-text-container'.
-                        texto[0] = el.getElementsByClass ("content-lottery__info").toString();
+        tipo = findViewById(R.id.tipo);
+        nome = findViewById(R.id.concurso);
+        resultado = findViewById(R.id.resultado);
 
-                    }
+        pesquisaconcurso = findViewById(R.id.pesquisaconcurso);
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
 
-        Toast.makeText(this, "Resultado: "+texto[0].toString(), Toast.LENGTH_SHORT).show();
+        new MegaSenaRequest(this,tiposelecionado).execute();
 
+    }
+
+    public void consultaconcurso(View view){
+        String s = pesquisaconcurso.getText().toString();
+        if (!s.matches("")) {
+            tiposelecionado = "#"+s;
+            Toast.makeText(this, ""+tiposelecionado, Toast.LENGTH_SHORT).show();
+            new MegaSenaRequest(this,tiposelecionado).execute();
+        }else{
+            Toast.makeText(this, "Informe o Concurso !", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void updateConcurso(Concurso concurso) {
+        tipo.setText("");
+        nome.setText("");
+        resultado.setText("");
+
+        concurso1 = new Concurso();
+        concurso1 = concurso;
+
+        tipo.setText(concurso1.getTipoconcurso());
+        nome.setText(concurso1.getConcurso());
+        resultado.setText(concurso1.getResultado());
     }
 }
